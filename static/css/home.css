@@ -1,0 +1,66 @@
+.content {
+    flex: 1;
+    display: flex;
+    div {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        padding: 30px;
+        .flexbox {
+            display: flex;
+            justify-content: center;
+            .item {
+                background-color: #114514;
+                color: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin: 10px;
+                padding: 20px;
+                text-align: center;
+                text-decoration: none;
+                transition: background-color 0.3s, transform 0.3s;
+                border-radius: 8px;
+                animation: fadeInUp 2s ease-in-out forwards;
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                &:hover {
+                    background-color: #1a5;
+                    transform: translateY(-5px);
+                }
+            }
+        }
+        a.more-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 auto;
+            background-color: #114514;
+            border-radius: 4px;
+            transition: background-color 0.3s, transform 0.3s;
+            &:hover {
+                background-color: #1a5;
+                transform: translateY(-3px);
+            }
+        }
+    }
+    #news {
+        background-color: #f0f0f0;
+    }
+    #events {
+        background-color: #e0e0e0;
+    }
+    h1 {
+        text-align: center;
+        margin: 0;
+    }
+}
