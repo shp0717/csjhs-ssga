@@ -1,3 +1,3 @@
-module github.com/shp0717/csjhs-ssga
+module github.com/shp0717/qingshan-ssga
 
 go 1.20

@@ -28,7 +28,7 @@ func StaticFiles() {
 	http.Handle("/static/", http.StripPrefix("/static/", fileServer))
 }
 
-func HandleRequests(port string) {
+func HandleRequests(addr string) {
 	// handle pages
 	http.HandleFunc("/", HomePageHandler)
 	http.HandleFunc("/news", NewsListPageHandler)
@@ -52,8 +52,8 @@ func HandleRequests(port string) {
 	http.HandleFunc("/api/vErIfYsEcReTpAsSwOrD", VerifySecretPasswordHandler)
 	http.HandleFunc("/api/secret-cmd", SecretCommandHandler)
 	// handle 404 for any other routes
-	fmt.Printf("[INFO] Server starting on port %s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	fmt.Printf("[INFO] Server starting on %s\n", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
 func renderNotFoundPage(w http.ResponseWriter, requestPath string) {
@@ -120,8 +120,6 @@ func NewsPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := strings.TrimPrefix(r.URL.Path, "/news/")
-	// requestedFile := "pages/news/news-" + id + ".html"
-	// content, err := Pages.ReadFile(requestedFile)
 	content, err := os.ReadFile(filepath.Join(execDir, "data", "pages", fmt.Sprintf("news-%s.html", id)))
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -146,8 +144,6 @@ func EventPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := strings.TrimPrefix(r.URL.Path, "/events/")
-	// requestedFile := "pages/events/event-" + id + ".html"
-	// content, err := Pages.ReadFile(requestedFile)
 	content, err := os.ReadFile(filepath.Join(execDir, "data", "pages", fmt.Sprintf("event-%s.html", id)))
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -253,9 +249,13 @@ func SecretPageHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	StaticFiles()
+	host := os.Getenv("HOST")
 	port := os.Getenv("PORT")
+	if host == "" {
+		host = "0.0.0.0"
+	}
 	if port == "" {
 		port = "8080"
 	}
-	HandleRequests(port)
+	HandleRequests(host + ":" + port)
 }

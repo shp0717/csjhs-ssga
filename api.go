@@ -85,10 +85,6 @@ func decodeReplyRequest(r *http.Request) (ReplyRequest, error) {
 		return ReplyRequest{}, err
 	}
 
-	// id, err := strconv.Atoi(r.FormValue("id"))
-	// if err != nil {
-	// 	return ReplyRequest{}, err
-	// }
 	var id int
 	idStr := r.FormValue("id")
 	_, err := fmt.Sscanf(idStr, "%d", &id)
@@ -112,7 +108,6 @@ func NewsApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// newsData, err := Static.ReadFile("static/data/news.json")
 	newsData, err := os.ReadFile(filepath.Join(execDir, "data", "news.json"))
 	if err != nil {
 		http.Error(w, "Could not load news data", http.StatusInternalServerError)
@@ -131,7 +126,6 @@ func EventApiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// eventData, err := Static.ReadFile("static/data/events.json")
 	eventData, err := os.ReadFile(filepath.Join(execDir, "data", "events.json"))
 	if err != nil {
 		http.Error(w, "Could not load event data", http.StatusInternalServerError)
