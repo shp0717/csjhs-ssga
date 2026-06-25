@@ -1,10 +1,8 @@
 package main
 
 import (
-	"embed"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -12,20 +10,13 @@ import (
 	"strings"
 )
 
-//go:embed pages/*
-var Pages embed.FS
-
-//go:embed static/*
-var Static embed.FS
+var PagesDir = filepath.Join(execDir, "pages")
 
 func StaticFiles() {
-	staticFS, err := fs.Sub(Static, "static")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fileServer := http.FileServer(http.FS(staticFS))
+	dir := filepath.Join(execDir, "static")
+	fileServer := http.FileServer(http.Dir(dir))
 	http.Handle("/static/", http.StripPrefix("/static/", fileServer))
+	fmt.Printf("[INFO] Serving static files from %s\n", dir)
 }
 
 func HandleRequests(addr string) {
@@ -37,7 +28,7 @@ func HandleRequests(addr string) {
 	http.HandleFunc("/events/", EventPageHandler)
 	http.HandleFunc("/feedback", FeedbackPageHandler)
 	http.HandleFunc("/feedback/new", NewFeedbackPageHandler)
-	http.HandleFunc("/feedback/view", ViewFeedbackPageHandler)
+	http.HandleFunc("GET /feedback/view", ViewFeedbackPageHandler)
 	http.HandleFunc("/about", AboutPageHandler)
 	http.HandleFunc("/contact", ContactPageHandler)
 	http.HandleFunc("/secret", SecretPageHandler)
@@ -45,19 +36,19 @@ func HandleRequests(addr string) {
 	// handle API
 	http.HandleFunc("/api/", ApiNotFoundHandler) // catch-all for undefined API routes
 	http.HandleFunc("/api/news", NewsApiHandler)
-	http.HandleFunc("/api/events", EventApiHandler)
+	http.HandleFunc("/api/events", EventsApiHandler)
 	http.HandleFunc("/api/feedbacks", GetFeedbacksHandler)
-	http.HandleFunc("/api/post-feedback", PostFeedbackHandler)
-	http.HandleFunc("/api/post-reply", AddReplyHandler)
-	http.HandleFunc("/api/vErIfYsEcReTpAsSwOrD", VerifySecretPasswordHandler)
-	http.HandleFunc("/api/secret-cmd", SecretCommandHandler)
+	http.HandleFunc("POST /api/post-feedback", PostFeedbackHandler)
+	http.HandleFunc("POST /api/post-reply", AddReplyHandler)
+	http.HandleFunc("POST /api/vErIfYsEcReTpAsSwOrD", VerifySecretPasswordHandler)
+	http.HandleFunc("POST /api/secret-cmd", SecretCommandHandler)
 	// handle 404 for any other routes
 	fmt.Printf("[INFO] Server starting on %s\n", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
 func renderNotFoundPage(w http.ResponseWriter, requestPath string) {
-	content, err := Pages.ReadFile("pages/404.html")
+	content, err := os.ReadFile(filepath.Join(PagesDir, "404.html"))
 	if err != nil {
 		http.Error(w, "Could not load page", http.StatusInternalServerError)
 		fmt.Printf("\033[31m[ERROR] Failed to read 404 page for %s: %v\033[0m\n", requestPath, err)
@@ -70,47 +61,35 @@ func renderNotFoundPage(w http.ResponseWriter, requestPath string) {
 	fmt.Printf("\033[33m[WARN] 404 Not Found: %s\033[0m\n", requestPath)
 }
 
+func renderFile(w http.ResponseWriter, filePathRel string) {
+	filePath := filepath.Join(PagesDir, filePathRel)
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		http.Error(w, "Could not load page", http.StatusInternalServerError)
+		fmt.Printf("\033[31m[ERROR] Failed to read file %s: %v\033[0m\n", filePath, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(content)
+	fmt.Printf("[INFO] File served: %s\n", filePath)
+}
+
 func HomePageHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		renderNotFoundPage(w, r.URL.Path)
 		return
 	}
-	content, err := Pages.ReadFile("pages/home.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read home page: %v\033[0m\n", err)
-		return
-	}
 
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] HomePage accessed")
+	renderFile(w, "home.html")
 }
 
 func NewsListPageHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := Pages.ReadFile("pages/news.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read news list page: %v\033[0m\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] News list page accessed")
+	renderFile(w, "news.html")
 }
 
 func EventsListPageHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := Pages.ReadFile("pages/events.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read events list page: %v\033[0m\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] Events list page accessed")
+	renderFile(w, "events.html")
 }
 
 func NewsPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +101,7 @@ func NewsPageHandler(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/news/")
 	content, err := os.ReadFile(filepath.Join(execDir, "data", "pages", fmt.Sprintf("news-%s.html", id)))
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
+		if errors.Is(err, os.ErrNotExist) {
 			renderNotFoundPage(w, r.URL.Path)
 			return
 		}
@@ -146,7 +125,7 @@ func EventPageHandler(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/events/")
 	content, err := os.ReadFile(filepath.Join(execDir, "data", "pages", fmt.Sprintf("event-%s.html", id)))
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
+		if errors.Is(err, os.ErrNotExist) {
 			renderNotFoundPage(w, r.URL.Path)
 			return
 		}
@@ -162,89 +141,27 @@ func EventPageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func FeedbackPageHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := Pages.ReadFile("pages/feedback.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read feedback page: %v\033[0m\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] Feedback page accessed")
+	renderFile(w, "feedback.html")
 }
 
 func NewFeedbackPageHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := Pages.ReadFile("pages/new-feedback.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read new feedback page: %v\033[0m\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] New Feedback page accessed")
+	renderFile(w, "new-feedback.html")
 }
 
 func ViewFeedbackPageHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("[INFO] View Feedback page requested: %s\n", r.URL.Path)
-	requestedFile := "pages/view-feedback.html"
-	id := strings.TrimPrefix(r.URL.Path, "/feedback/view?id=")
-	content, err := Pages.ReadFile(requestedFile)
-	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			renderNotFoundPage(w, r.URL.Path)
-			return
-		}
-
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read view feedback page %s: %v\033[0m\n", requestedFile, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Printf("[INFO] View Feedback page accessed: %s\n", id)
+	renderFile(w, "view-feedback.html")
 }
 
 func AboutPageHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := Pages.ReadFile("pages/about.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read about page: %v\033[0m\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] About page accessed")
+	renderFile(w, "about.html")
 }
 
 func ContactPageHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := Pages.ReadFile("pages/contact.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read contact page: %v\033[0m\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] Contact page accessed")
+	renderFile(w, "contact.html")
 }
 
 func SecretPageHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := Pages.ReadFile("pages/secret.html")
-	if err != nil {
-		http.Error(w, "Could not load page", http.StatusInternalServerError)
-		fmt.Printf("\033[31m[ERROR] Failed to read secret page: %v\033[0m\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	w.Write(content)
-	fmt.Println("[INFO] Secret page accessed")
+	renderFile(w, "secret.html")
 }
 
 func main() {

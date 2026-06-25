@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青山自治會</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/home.css">
+    <link rel="icon" href="/static/images/favicon.png" type="image/png">
+</head>
+<body>
+    <header>
+        <a href="/">
+            <img src="/static/images/logo.png" alt="青山自治會" class="logo">
+        </a>
+        <h1 style="text-align: center;">青山自治會</h1>
+    </header>
+
+    <div class="navbar">
+        <a href="/">首頁</a>
+        <a href="/news">最新消息</a>
+        <a href="/events">活動公告</a>
+        <a href="/feedback">意見回饋</a>
+        <a href="/about">關於我們</a>
+        <a href="/contact">聯絡我們</a>
+    </div>
+
+    <div class="content">
+        <div>
+            <h1>最新消息</h1>
+            <a class="item" id="latest-news-link"><h2 id="latest-news">沒有最新消息</h2></a>
+        </div>
+        <div>
+            <h1>活動公告</h1>
+            <a class="item" id="latest-event-link"><h2 id="latest-event">沒有活動公告</h2></a>
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+        alert('此網站無法在行動裝置上使用，請使用電腦瀏覽器訪問。');
+        window.location.href = 'https://www.csjhs.ntpc.edu.tw/';
+    }
+
+    fetch('/api/news')
+        .then(response => response.json())
+        .then(data => {
+            const latestNews = document.getElementById('latest-news');
+            const latestNewsLink = document.getElementById('latest-news-link');
+            if (data.length === 0) {
+                return;
+            }
+            data.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latestItem = data[0];
+            latestNews.textContent = latestItem.title;
+            latestNewsLink.href = `/news/${latestItem.id}`;
+        })
+        .catch(error => {
+            console.error('Error fetching news:', error);
+            const latestNews = document.getElementById('latest-news');
+            latestNews.textContent = '無法載入最新消息，請稍後再試。';
+        });
+
+    fetch('/api/events')
+        .then(response => response.json())
+        .then(data => {
+            const latestEvent = document.getElementById('latest-event');
+            const latestEventLink = document.getElementById('latest-event-link');
+            if (data.length === 0) {
+                return;
+            }
+            data.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latestItem = data[0];
+            latestEvent.textContent = latestItem.title;
+            latestEventLink.href = `/events/${latestItem.id}`;
+        })
+        .catch(error => {
+            console.error('Error fetching events:', error);
+            const latestEvent = document.getElementById('latest-event');
+            latestEvent.textContent = '無法載入活動公告，請稍後再試。';
+        });
+</script>

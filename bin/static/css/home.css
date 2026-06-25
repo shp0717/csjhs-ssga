@@ -1,0 +1,44 @@
+.content div {
+    display: flex;
+    padding: 10px;
+    margin-top: 20px;
+    .item {
+        background-color: #114514;
+        color: white;
+
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+
+        text-decoration: none;
+        transition: background-color 0.3s, transform 0.3s;
+        border-radius: 8px;
+
+        &:hover {
+            background-color: #1a5;
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            padding: 0 10px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+    }
+
+    h1 {
+        display: flex;
+        align-items: center;
+        border-right: 5px solid #114514;
+        padding-right: 10px;
+        padding-bottom: 0px;
+        margin: 0 10px 0 0;
+    }
+}

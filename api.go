@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"crypto/sha256"
 )
 
 var execDir = func() string {
@@ -103,11 +103,6 @@ func ApiNotFoundHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewsApiHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	newsData, err := os.ReadFile(filepath.Join(execDir, "data", "news.json"))
 	if err != nil {
 		http.Error(w, "Could not load news data", http.StatusInternalServerError)
@@ -120,12 +115,7 @@ func NewsApiHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("[INFO] News API accessed")
 }
 
-func EventApiHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+func EventsApiHandler(w http.ResponseWriter, r *http.Request) {
 	eventData, err := os.ReadFile(filepath.Join(execDir, "data", "events.json"))
 	if err != nil {
 		http.Error(w, "Could not load event data", http.StatusInternalServerError)
@@ -139,11 +129,6 @@ func EventApiHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PostFeedbackHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	request, err := decodeFeedbackRequest(r)
 	if err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
@@ -209,11 +194,6 @@ func PostFeedbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddReplyHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	request, err := decodeReplyRequest(r)
 	if err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
@@ -297,11 +277,6 @@ func GetFeedbacksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func VerifySecretPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	var request struct {
 		Password string `json:"password"`
 	}
@@ -327,11 +302,6 @@ func VerifySecretPasswordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SecretCommandHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	var request map[string]string
 
 	defer r.Body.Close()
