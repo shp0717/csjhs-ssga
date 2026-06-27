@@ -52,6 +52,7 @@
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 font-size: 16px;
+                min-width: 0;
             }
             #name {
                 flex: 1;

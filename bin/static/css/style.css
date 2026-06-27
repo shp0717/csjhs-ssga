@@ -83,17 +83,17 @@ header {
         }
     }
 }
-
-@media(max-width:700px){
+@media (max-width: 700px) {
     header .logo {
         display: none;
     }
+
     .navbar a span {
         display: block;
     }
 }
 
-@media(min-width:1050px){
+@media (min-width: 1050px) {
     header h1::after {
         content: "青山國中小學生自治會";
     }
