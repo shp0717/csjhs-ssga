@@ -47,6 +47,7 @@
 }
 
 .content .credits {
+    box-sizing: border-box;
     position: absolute;
     padding: 10px;
     top: 100vh;
@@ -63,6 +64,32 @@
 
             &:hover {
                 color: #114514;
+            }
+        }
+
+        span[data-title] {
+            position: relative;
+            cursor: help;
+
+            &::after {
+                content: attr(data-title);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #fff;
+                color: #114514;
+                padding: 5px;
+                border-radius: 5px;
+                white-space: nowrap;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.3s, background-color 0.3s, color 0.3s;
+            }
+            &:hover::after {
+                opacity: 1;
+                background-color: #114514;
+                color: #fff;
             }
         }
     }
