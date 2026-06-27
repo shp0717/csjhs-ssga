@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 var PagesDir = filepath.Join(execDir, "pages")
 var DataDir = filepath.Join(execDir, "data")
+var mu sync.Mutex
 
 func StaticFiles() {
 	dir := filepath.Join(execDir, "static")
@@ -66,6 +68,8 @@ func renderNotFoundPage(w http.ResponseWriter, requestPath string) {
 }
 
 func renderFile(w http.ResponseWriter, filePathRel string) {
+	mu.Lock()
+	defer mu.Unlock()
 	filePath := filepath.Join(PagesDir, filePathRel)
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -80,6 +84,8 @@ func renderFile(w http.ResponseWriter, filePathRel string) {
 }
 
 func renderDataPage(w http.ResponseWriter, filePathRel string) {
+	mu.Lock()
+	defer mu.Unlock()
 	filePath := filepath.Join(DataDir, "pages", filePathRel)
 	content, err := os.ReadFile(filePath)
 	if err != nil {

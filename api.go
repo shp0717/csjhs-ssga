@@ -105,6 +105,8 @@ func ApiNotFoundHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewsApiHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
 	newsData, err := os.ReadFile(filepath.Join(execDir, "data", "news.json"))
 	if err != nil {
 		http.Error(w, "Could not load news data", http.StatusInternalServerError)
@@ -118,6 +120,8 @@ func NewsApiHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func EventsApiHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
 	eventData, err := os.ReadFile(filepath.Join(execDir, "data", "events.json"))
 	if err != nil {
 		http.Error(w, "Could not load event data", http.StatusInternalServerError)
@@ -131,6 +135,8 @@ func EventsApiHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PostFeedbackHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
 	request, err := decodeFeedbackRequest(r)
 	if err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
@@ -201,6 +207,8 @@ func PostFeedbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddReplyHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
 	request, err := decodeReplyRequest(r)
 	if err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
@@ -272,6 +280,8 @@ func AddReplyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetFeedbacksHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
 	feedbacksJSON, err := os.ReadFile(feedbackFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -317,6 +327,8 @@ func VerifySecretPasswordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SecretCommandHandler(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	defer mu.Unlock()
 	var request map[string]string
 
 	defer r.Body.Close()
