@@ -26,6 +26,7 @@ body {
 
 header {
     z-index: 67;
+    background-color: #fff;
     height: 75px;
     top: 0;
     display: flex;
